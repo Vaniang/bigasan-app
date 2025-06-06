@@ -6,69 +6,99 @@
   <title>Princess Vanessa Bigasan</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f9f9f9;
-    }
-    h1, h2 {
-      text-align: center;
-    }
-    .form-section, .table-section {
-      max-width: 900px;
-      margin: 20px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      margin-bottom: 15px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-    }
-    th {
-      background: #eee;
-    }
-    .paid {
-      color: green;
-      font-weight: bold;
-    }
-    .unpaid {
-      color: red;
-      font-weight: bold;
-    }
-    .actions {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-    }
-    .btn-print, .btn-export {
-      margin: 10px;
-      padding: 10px 20px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .btn-print:hover, .btn-export:hover {
-      background-color: #0056b3;
-    }
+    body {
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to right, #f7f8fc, #eef1f5);
+  color: #333;
+}
+
+h1, h2 {
+  text-align: center;
+  color: #2c3e50;
+}
+
+.form-section, .table-section {
+  max-width: 1000px;
+  margin: 30px auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+label {
+  margin-top: 12px;
+  font-weight: 600;
+  color: #555;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
+button {
+  background: #007bff;
+  color: white;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: #0056b3;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.btn-print, .btn-export {
+  background-color: #28a745;
+}
+
+.btn-export {
+  background-color: #17a2b8;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background-color: white;
+}
+
+th, td {
+  padding: 12px;
+  border: 1px solid #ddd;
+}
+
+th {
+  background: #f1f1f1;
+  color: #333;
+  font-weight: bold;
+}
+
+.paid {
+  color: green;
+  font-weight: bold;
+}
+
+.unpaid {
+  color: red;
+  font-weight: bold;
+}
+
   </style>
 </head>
 <body>
@@ -117,6 +147,23 @@
   </div>
 
   <script>
+
+    window.onload = () => {
+  loadData();
+  notifyDueDates();
+};
+
+function notifyDueDates() {
+  const data = JSON.parse(localStorage.getItem("bigasanData")) || [];
+  const today = new Date().toISOString().split('T')[0];
+  const dueTodayOrPast = data.filter(record => record.status === 'Unpaid' && record.dueDate <= today);
+
+  if (dueTodayOrPast.length > 0) {
+    let names = dueTodayOrPast.map(r => `${r.name} (Due: ${r.dueDate})`).join('\n');
+    alert(`⚠️ The following customers are due or overdue:\n\n${names}`);
+  }
+}
+    
     function formatDate(date) {
       return new Date(date).toISOString().split('T')[0];
     }
