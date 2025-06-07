@@ -4,101 +4,121 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Princess Vanessa Bigasan</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <style>
     body {
-    body {
-  font-family: 'Segoe UI', sans-serif;
-  margin: 0;
-  padding: 0;
-  background: linear-gradient(to right, #f7f8fc, #eef1f5);
-  color: #333;
-}
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #f7f8fc, #eef1f5);
+      color: #333;
+    }
 
-h1, h2 {
-  text-align: center;
-  color: #2c3e50;
-}
+    h1, h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
 
-.form-section, .table-section {
-  max-width: 1000px;
-  margin: 30px auto;
-  background: #fff;
-  padding: 25px;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-}
+    .form-section, .table-section {
+      max-width: 1000px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
 
-label {
-  margin-top: 12px;
-  font-weight: 600;
-  color: #555;
-}
+    label {
+      margin-top: 12px;
+      font-weight: 600;
+      color: #555;
+      display: block;
+    }
 
-input, select, button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 6px;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 15px;
-}
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
 
-button {
-  background: #007bff;
-  color: white;
-  font-weight: bold;
-  transition: background 0.3s;
-}
+    button {
+      background: #007bff;
+      color: white;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
 
-button:hover {
-  background: #0056b3;
-}
+    button:hover {
+      background: #0056b3;
+    }
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  margin-bottom: 20px;
-}
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
 
-.btn-print, .btn-export {
-  background-color: #28a745;
-}
+    .btn-print {
+      background-color: #28a745;
+    }
 
-.btn-export {
-  background-color: #17a2b8;
-}
+    .btn-export {
+      background-color: #17a2b8;
+    }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-  background-color: white;
-}
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      background-color: white;
+      overflow-x: auto;
+    }
 
-th, td {
-  padding: 12px;
-  border: 1px solid #ddd;
-}
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+    }
 
-th {
-  background: #f1f1f1;
-  color: #333;
-  font-weight: bold;
-}
+    th {
+      background: #f1f1f1;
+      color: #333;
+      font-weight: bold;
+    }
 
-.paid {
-  color: green;
-  font-weight: bold;
-}
+    .paid {
+      color: green;
+      font-weight: bold;
+    }
 
-.unpaid {
-  color: red;
-  font-weight: bold;
-}
+    .unpaid {
+      color: red;
+      font-weight: bold;
+    }
 
+    @media screen and (max-width: 768px) {
+      .form-section, .table-section {
+        padding: 15px;
+        margin: 10px;
+      }
+
+      input, select, button {
+        font-size: 14px;
+      }
+
+      table {
+        font-size: 12px;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+    }
   </style>
 </head>
 <body>
@@ -147,32 +167,33 @@ th {
   </div>
 
   <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
     window.onload = () => {
-  loadData();
-  notifyDueDates();
-};
+      loadData();
+      notifyDueDates();
+    };
 
-function notifyDueDates() {
-  const data = JSON.parse(localStorage.getItem("bigasanData")) || [];
-  const today = new Date().toISOString().split('T')[0];
-  const dueTodayOrPast = data.filter(record => record.status === 'Unpaid' && record.dueDate <= today);
-
-  if (dueTodayOrPast.length > 0) {
-    let names = dueTodayOrPast.map(r => `${r.name} (Due: ${r.dueDate})`).join('\n');
-    alert(`⚠️ The following customers are due or overdue:\n\n${names}`);
-  }
-}
-    
     function formatDate(date) {
       return new Date(date).toISOString().split('T')[0];
     }
 
-    function loadData() {
-      const data = JSON.parse(localStorage.getItem("bigasanData")) || [];
+    async function loadData() {
+      const snapshot = await db.collection("bigasanData").get();
       const tbody = document.getElementById("tableBody");
       tbody.innerHTML = "";
-      data.forEach((record, index) => {
+      snapshot.forEach((doc) => {
+        const record = doc.data();
         const row = tbody.insertRow();
         row.insertCell(0).textContent = record.name;
         row.insertCell(1).textContent = record.dateBorrowed;
@@ -182,16 +203,22 @@ function notifyDueDates() {
         row.insertCell(5).textContent = record.dueDate;
         row.insertCell(6).innerHTML = `<span class="${record.status === 'Paid' ? 'paid' : 'unpaid'}">${record.status}</span>`;
         row.insertCell(7).innerHTML = record.status === 'Unpaid'
-          ? `<button onclick="markPaid(${index})">Mark Paid</button>`
+          ? `<button onclick="markPaid('${doc.id}')">Mark Paid</button>`
           : '';
       });
     }
 
-    function saveData(data) {
-      localStorage.setItem("bigasanData", JSON.stringify(data));
+    async function notifyDueDates() {
+      const today = new Date().toISOString().split('T')[0];
+      const snapshot = await db.collection("bigasanData").where("status", "==", "Unpaid").get();
+      const dueTodayOrPast = snapshot.docs.filter(doc => doc.data().dueDate <= today);
+      if (dueTodayOrPast.length > 0) {
+        let names = dueTodayOrPast.map(doc => `${doc.data().name} (Due: ${doc.data().dueDate})`).join('\n');
+        alert(`⚠️ The following customers are due or overdue:\n\n${names}`);
+      }
     }
 
-    function addCustomer() {
+    async function addCustomer() {
       const name = document.getElementById('name').value.trim();
       const qty = parseInt(document.getElementById('quantity').value);
       const payment = document.getElementById('payment').value;
@@ -217,22 +244,17 @@ function notifyDueDates() {
         status: 'Unpaid'
       };
 
-      const data = JSON.parse(localStorage.getItem("bigasanData")) || [];
-      data.push(record);
-      saveData(data);
+      await db.collection("bigasanData").add(record);
       loadData();
 
-      // Clear form
       document.getElementById('name').value = '';
       document.getElementById('quantity').value = 1;
       document.getElementById('date').value = '';
       document.getElementById('payment').value = 'cash';
     }
 
-    function markPaid(index) {
-      const data = JSON.parse(localStorage.getItem("bigasanData"));
-      data[index].status = 'Paid';
-      saveData(data);
+    async function markPaid(docId) {
+      await db.collection("bigasanData").doc(docId).update({ status: 'Paid' });
       loadData();
     }
 
@@ -247,8 +269,6 @@ function notifyDueDates() {
       a.click();
       document.body.removeChild(a);
     }
-
-    window.onload = loadData;
   </script>
 </body>
 </html>
