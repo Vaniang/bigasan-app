@@ -2,133 +2,111 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <title>Bigasan App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Princess Vanessa Bigasan</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f9f9f9;
-    }
-    h1 {
-      text-align: center;
-    }
-    .form-section, .table-section {
-      max-width: 600px;
-      margin: 20px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      margin-bottom: 15px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: center;
-    }
-    th {
-      background: #eee;
-    }
-    .paid {
-      color: green;
-      font-weight: bold;
-    }
-    .unpaid {
-      color: red;
-      font-weight: bold;
-    }
+    body { font-family: Arial; padding: 20px; max-width: 600px; margin: auto; }
+    input, select, button { width: 100%; margin: 5px 0; padding: 10px; }
+    .credit { background: #ffeeba; }
+    .paid { background: #c3e6cb; }
+    .unpaid { background: #f5c6cb; }
+    .entry { border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px; }
   </style>
 </head>
 <body>
-  <h1>Princess Vanessa Bigasan</h1>
+  <h2>Bigasan Web App</h2>
 
-  <div class="form-section">
-    <label for="name">Customer Name:</label>
-    <input type="text" id="name">
+  <input type="text" id="name" placeholder="Customer Name">
+  <input type="number" id="sacks" placeholder="No. of Sacks">
+  <select id="mode">
+    <option value="cash">Cash (₱1200)</option>
+    <option value="credit">Credit (₱1300)</option>
+  </select>
+  <button id="addBtn">Add Transaction</button>
 
-    <label for="quantity">Quantity (x25kg):</label>
-    <input type="number" id="quantity" min="1" value="1">
+  <h3>Transactions</h3>
+  <div id="transactions"></div>
 
-    <label for="payment">Payment Type:</label>
-    <select id="payment">
-      <option value="cash">Cash</option>
-      <option value="credit">Credit</option>
-    </select>
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      updateDoc,
+      doc
+    } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore.js";
 
-    <button onclick="addCustomer()">Add Record</button>
-  </div>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAiVmu7os7C6e6ZU6eUKlxYrNBXKDzgjrY",
+      authDomain: "bigasan-98507.firebaseapp.com",
+      projectId: "bigasan-98507",
+      storageBucket: "bigasan-98507.appspot.com",
+      messagingSenderId: "448050398434",
+      appId: "1:448050398434:web:3d966a9cb159831eeecabb"
+    };
 
-  <div class="table-section">
-    <h2>Customer Records</h2>
-    <table id="customerTable">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Date Borrowed</th>
-          <th>Qty (25kg)</th>
-          <th>Payment</th>
-          <th>Total (₱)</th>
-          <th>Due Date</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-  </div>
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  <script>
-    function formatDate(date) {
-      return date.toISOString().split('T')[0];
+    async function addTransaction() {
+      const name = document.getElementById("name").value;
+      const sacks = parseInt(document.getElementById("sacks").value);
+      const mode = document.getElementById("mode").value;
+
+      if (!name || !sacks) return alert("Please complete all fields.");
+
+      const price = mode === "cash" ? 1200 : 1300;
+      const total = sacks * price;
+      const date = new Date();
+      const due = mode === "credit" ? new Date(date.setMonth(date.getMonth() + 1)).toISOString().split('T')[0] : "";
+
+      await addDoc(collection(db, "transactions"), {
+        name,
+        sacks,
+        mode,
+        total,
+        paid: mode === "cash",
+        date: new Date().toISOString().split('T')[0],
+        due
+      });
+
+      document.getElementById("name").value = "";
+      document.getElementById("sacks").value = "";
+      document.getElementById("mode").value = "cash";
+
+      loadTransactions();
     }
 
-    function addCustomer() {
-      const name = document.getElementById('name').value;
-      const qty = parseInt(document.getElementById('quantity').value);
-      const payment = document.getElementById('payment').value;
-      const dateBorrowed = new Date();
-      const dueDate = new Date();
-      dueDate.setMonth(dueDate.getMonth() + 1);
-
-      const total = qty * (payment === 'cash' ? 1200 : 1300);
-
-      const table = document.getElementById('tableBody');
-      const row = table.insertRow();
-
-      row.insertCell(0).textContent = name;
-      row.insertCell(1).textContent = formatDate(dateBorrowed);
-      row.insertCell(2).textContent = qty;
-      row.insertCell(3).textContent = payment.charAt(0).toUpperCase() + payment.slice(1);
-      row.insertCell(4).textContent = total;
-      row.insertCell(5).textContent = formatDate(dueDate);
-      row.insertCell(6).innerHTML = '<span class="unpaid">Unpaid</span>';
-      row.insertCell(7).innerHTML = '<button onclick="markPaid(this)">Mark Paid</button>';
-
-      // Clear inputs
-      document.getElementById('name').value = '';
-      document.getElementById('quantity').value = 1;
-      document.getElementById('payment').value = 'cash';
+    async function loadTransactions() {
+      const transDiv = document.getElementById("transactions");
+      transDiv.innerHTML = "";
+      const querySnapshot = await getDocs(collection(db, "transactions"));
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const div = document.createElement("div");
+        div.className = `entry ${data.mode === "credit" ? (data.paid ? "paid" : "unpaid") : ""}`;
+        div.innerHTML = `
+          <strong>${data.name}</strong><br>
+          Sacks: ${data.sacks} | Mode: ${data.mode} | Total: ₱${data.total}<br>
+          Date: ${data.date}${data.due ? ` | Due: ${data.due}` : ""}<br>
+          ${data.mode === "credit" && !data.paid ? `<button onclick="markPaid('${docSnap.id}')">Mark as Paid</button>` : ""}
+        `;
+        transDiv.appendChild(div);
+      });
     }
 
-    function markPaid(btn) {
-      const row = btn.parentNode.parentNode;
-      row.cells[6].innerHTML = '<span class="paid">Paid</span>';
-      btn.remove();
+    async function markPaid(id) {
+      const docRef = doc(db, "transactions", id);
+      await updateDoc(docRef, { paid: true });
+      loadTransactions();
     }
+
+    document.getElementById("addBtn").addEventListener("click", addTransaction);
+
+    loadTransactions();
   </script>
 </body>
 </html>
